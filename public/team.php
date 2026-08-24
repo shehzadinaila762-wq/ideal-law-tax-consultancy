@@ -26,26 +26,7 @@ $team = $conn->query("SELECT * FROM team_members ORDER BY id ASC");
 
 <body>
 
-	<header>
-
-		<div class="logo">
-			<span class="logo-icon">⚖️</span>
-			<span>IDEAL LAW & TAX CONSULTANCY</span>
-		</div>
-
-		<nav>
-
-			<a href="index.php">Home</a>
-			<a href="services.php">Services</a>
-			<a href="about.php">About</a>
-			<a href="gallery.php">Gallery</a>
-			<a href="team.php">Our Team</a>
-			<a href="contact.php">Contact</a>
-			<a href="admin.php">Admin Panel</a>
-
-		</nav>
-
-	</header>
+	<?php include __DIR__ . '/header.php'; ?>
 
 	<section id="team">
 

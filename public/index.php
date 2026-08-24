@@ -51,25 +51,7 @@ if (isset($_POST['send_query'])) {
 
 <body>
 
-	<header>
-
-		<div class="logo">
-			<span class="logo-icon"> ⚖️ </span>
-			<span>IDEAL LAW & TAX CONSULTANCY </span>
-		</div>
-
-		<nav>
-			<a href="index.php">Home</a>
-			<a href="services.php">Services</a>
-			<a href="about.php">About</a>
-			<a href="gallery.php">Gallery</a>
-			<a href="team.php">Our Team</a>
-			<a href="contact.php">Contact</a>
-			<a href="admin.php">Admin Panel</a>
-		</nav>
-
-	</header>
-
+	<?php include __DIR__ . '/header.php'; ?>
 	<section class="hero" id="home">
 
 		<div>
@@ -251,7 +233,7 @@ if (isset($_POST['send_query'])) {
 					No images available yet.
 				</p>
 
-									<?php endif; ?>
+			<?php endif; ?>
 
 		</div>
 
@@ -278,15 +260,15 @@ if (isset($_POST['send_query'])) {
 					<div class="member">
 
 						<div class="member-icon">
-																			<?php echo htmlspecialchars($member['icon']); ?>
+							<?php echo htmlspecialchars($member['icon']); ?>
 						</div>
 
 						<h3>
-																			<?php echo htmlspecialchars($member['member_name']); ?>
+							<?php echo htmlspecialchars($member['member_name']); ?>
 						</h3>
 
 						<p>
-																			<?php echo htmlspecialchars($member['designation']); ?>
+							<?php echo htmlspecialchars($member['designation']); ?>
 						</p>
 
 					</div>
@@ -301,7 +283,7 @@ if (isset($_POST['send_query'])) {
 
 				<p>No team members available yet.</p>
 
-									<?php endif; ?>
+			<?php endif; ?>
 
 		</div>
 

@@ -135,13 +135,13 @@ if (isset($_POST['login'])) {
 			Ideal Law & Tax Consultancy
 		</p>
 
-						<?php if ($error): ?>
+		<?php if ($error): ?>
 
 			<div class="error">
-												<?php echo $error; ?>
+				<?php echo $error; ?>
 			</div>
 
-						<?php endif; ?>
+		<?php endif; ?>
 
 		<form method="POST">
 
