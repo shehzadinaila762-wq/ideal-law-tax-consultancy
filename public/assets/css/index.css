@@ -7,12 +7,16 @@
 
 html {
   scroll-behavior: smooth;
+  height: 100%;
 }
 
 body {
   background: #fafaf8;
   color: #1f2937;
   line-height: 1.7;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* HEADER */
@@ -362,6 +366,7 @@ section {
 .card li {
   margin: 8px 0;
   font-size: 14px;
+  margin-top: auto;
 }
 
 /* ABOUT */
@@ -554,13 +559,13 @@ section {
 }
 
 /* FOOTER */
-
 footer {
   background: #0b1120;
   color: #cbd5e1;
   text-align: center;
   padding: 22px;
   font-size: 14px;
+  margin-top: auto;
 }
 
 /* RESPONSIVE */

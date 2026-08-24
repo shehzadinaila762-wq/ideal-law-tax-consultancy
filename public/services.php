@@ -145,14 +145,7 @@ if (count($service_cards) === 0) {
 
 	</section>
 
-	<footer>
-
-		<p>
-			© 2026 Ideal Law and Tax Consultancy. All Rights Reserved.
-		</p>
-
-	</footer>
-
+	<?php include __DIR__ . '/footer.php'; ?>
 </body>
 
 </html>
