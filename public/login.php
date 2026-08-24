@@ -153,7 +153,7 @@ if (isset($_POST['login'])) {
 
 			<input type="password" name="password" required>
 
-			<button type="submit" name="login">
+			<button type="submit" action="login" name="login">
 				Login
 			</button>
 

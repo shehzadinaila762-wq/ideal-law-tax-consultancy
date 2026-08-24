@@ -51,6 +51,75 @@ $conn->query("CREATE TABLE IF NOT EXISTS payments (
 	notes VARCHAR(255),
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
+
+/* Create services table */
+$conn->query("CREATE TABLE IF NOT EXISTS services (
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	title VARCHAR(150) NOT NULL,
+	icon VARCHAR(20) DEFAULT '⚖️',
+	items TEXT NOT NULL,
+	sort_order INT DEFAULT 0,
+	status ENUM('Active','Inactive') DEFAULT 'Active',
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+
+/* Seed default services if table is empty */
+$service_count = $conn->query(
+	"SELECT COUNT(*) AS total FROM services"
+)->fetch_assoc()['total'];
+
+if ((int) $service_count === 0) {
+
+	$default_services = [
+		[
+			"Legal Services",
+			"⚖️",
+			"Legal Consultation & Advice\nLegal Documentation & Drafting\nContract & Agreement Drafting\nProperty & Land Matters\nCivil & Criminal Matters\nFamily Law Matters\nCorporate Legal Advisory\nLegal Notices\nCourt & Litigation Services",
+			1
+		],
+		[
+			"Tax Consultation",
+			"💰",
+			"Income Tax Return\nGeneral Sales Tax (GST)\nRegional Sales Tax (BRA)\nFederal Excise Tax\nPOS (Point of Sale)\nNTN (National Tax Number)",
+			2
+		],
+		[
+			"Corporate Services",
+			"🏢",
+			"Company Registration\nFirm Registration\nPakistan Engineering Council Registration\nTrademark Registration\nImport / Export License\nChamber of Commerce Registration\nNGO / NPO Registration",
+			3
+		],
+		[
+			"Documentation Services",
+			"📄",
+			"Legal Document Preparation\nAgreements & Contracts\nAffidavits\nApplications & Official Documents\nPower of Attorney\nLegal Notices\nBusiness & Company Documents\nTax & Regulatory Documents",
+			4
+		]
+	];
+
+	$seed = $conn->prepare(
+		"INSERT INTO services (title, icon, items, sort_order, status)
+		 VALUES (?, ?, ?, ?, 'Active')"
+	);
+
+	foreach ($default_services as $service_row) {
+
+		$title = $service_row[0];
+		$icon = $service_row[1];
+		$items = $service_row[2];
+		$sort_order = $service_row[3];
+
+		$seed->bind_param(
+			"sssi",
+			$title,
+			$icon,
+			$items,
+			$sort_order
+		);
+
+		$seed->execute();
+	}
+}
 /* Add Team Member */
 
 if (isset($_POST['add_member'])) {
@@ -135,6 +204,140 @@ if (isset($_GET['delete_member'])) {
 
 	$stmt->bind_param("i", $id);
 	$stmt->execute();
+
+	header("Location: admin.php");
+	exit;
+}
+
+/* Add Service */
+if (isset($_POST['add_service'])) {
+
+	$title = trim($_POST['service_title']);
+	$icon = trim($_POST['service_icon']);
+	$items = trim($_POST['service_items']);
+	$sort_order = intval($_POST['sort_order']);
+	$status = $_POST['service_status'];
+
+	if ($icon === "") {
+		$icon = "⚖️";
+	}
+
+	$stmt = $conn->prepare(
+		"INSERT INTO services (title, icon, items, sort_order, status)
+		 VALUES (?, ?, ?, ?, ?)"
+	);
+
+	$stmt->bind_param(
+		"sssis",
+		$title,
+		$icon,
+		$items,
+		$sort_order,
+		$status
+	);
+
+	$stmt->execute();
+
+	header("Location: admin.php");
+	exit;
+}
+
+/* Load Service for Edit */
+$edit_service = null;
+
+if (isset($_GET['edit_service'])) {
+
+	$service_id = intval($_GET['edit_service']);
+
+	$service_result = $conn->query(
+		"SELECT * FROM services WHERE id = $service_id"
+	);
+
+	if ($service_result && $service_result->num_rows > 0) {
+		$edit_service = $service_result->fetch_assoc();
+	}
+}
+
+/* Edit Service */
+if (isset($_POST['edit_service'])) {
+
+	$id = intval($_POST['service_id']);
+	$title = trim($_POST['service_title']);
+	$icon = trim($_POST['service_icon']);
+	$items = trim($_POST['service_items']);
+	$sort_order = intval($_POST['sort_order']);
+	$status = $_POST['service_status'];
+
+	if ($icon === "") {
+		$icon = "⚖️";
+	}
+
+	$stmt = $conn->prepare(
+		"UPDATE services
+		 SET title=?, icon=?, items=?, sort_order=?, status=?
+		 WHERE id=?"
+	);
+
+	$stmt->bind_param(
+		"sssisi",
+		$title,
+		$icon,
+		$items,
+		$sort_order,
+		$status,
+		$id
+	);
+
+	$stmt->execute();
+
+	header("Location: admin.php");
+	exit;
+}
+
+/* Delete Service */
+if (isset($_GET['delete_service'])) {
+
+	$id = intval($_GET['delete_service']);
+
+	$stmt = $conn->prepare(
+		"DELETE FROM services WHERE id=?"
+	);
+
+	$stmt->bind_param("i", $id);
+	$stmt->execute();
+
+	header("Location: admin.php");
+	exit;
+}
+
+/* Toggle Service Status */
+if (isset($_GET['toggle_service'])) {
+
+	$id = intval($_GET['toggle_service']);
+
+	$service = $conn->query(
+		"SELECT status FROM services WHERE id = $id"
+	)->fetch_assoc();
+
+	if ($service) {
+
+		$new_status =
+			($service['status'] == 'Active')
+			? 'Inactive'
+			: 'Active';
+
+		$stmt = $conn->prepare(
+			"UPDATE services SET status=? WHERE id=?"
+		);
+
+		$stmt->bind_param(
+			"si",
+			$new_status,
+			$id
+		);
+
+		$stmt->execute();
+	}
 
 	header("Location: admin.php");
 	exit;
@@ -600,6 +803,11 @@ $queries = $conn->query(
 	"SELECT * FROM queries ORDER BY id DESC"
 );
 
+/* Services */
+$services_list = $conn->query(
+	"SELECT * FROM services ORDER BY sort_order ASC, id DESC"
+);
+
 ?>
 
 <!DOCTYPE html>
@@ -704,12 +912,18 @@ $queries = $conn->query(
 		}
 
 		input,
-		select {
+		select,
+		textarea {
 			width: 100%;
 			padding: 11px;
 			margin: 7px 0 15px;
 			border: 1px solid #ccc;
 			border-radius: 4px;
+		}
+
+		textarea {
+			min-height: 140px;
+			resize: vertical;
 		}
 
 		button {
@@ -853,6 +1067,196 @@ $queries = $conn->query(
 			<div class="dashboard-card">
 				<h3>Total Pending</h3>
 				<div class="number">Rs. <?php echo number_format($total_pending); ?></div>
+			</div>
+
+		</div>
+
+		<!-- SERVICES -->
+
+		<div class="form-box">
+
+			<h2>Manage Services</h2>
+
+			<form method="POST">
+
+				<div class="form-grid">
+
+					<div>
+						<label for="service_title_add">Service Title</label>
+						<input id="service_title_add" type="text" name="service_title" required>
+					</div>
+
+					<div>
+						<label for="service_icon_add">Icon</label>
+						<input id="service_icon_add" type="text" name="service_icon" value="⚖️" placeholder="⚖️ / 💰 / 🏢">
+					</div>
+
+					<div>
+						<label for="sort_order_add">Sort Order</label>
+						<input id="sort_order_add" type="number" name="sort_order" value="0" required>
+					</div>
+
+					<div>
+						<label for="service_status_add">Status</label>
+						<select id="service_status_add" name="service_status">
+							<option value="Active">Active</option>
+							<option value="Inactive">Inactive</option>
+						</select>
+					</div>
+
+					<div class="full">
+						<label for="service_items_add">Service Items (One line per item)</label>
+						<textarea id="service_items_add" name="service_items" required></textarea>
+					</div>
+
+					<div class="full">
+
+						<button type="submit" name="add_service">
+							+ Add Service
+						</button>
+
+					</div>
+
+				</div>
+
+			</form>
+
+		</div>
+
+		<?php if ($edit_service): ?>
+
+			<div class="form-box">
+
+				<h2>Edit Service</h2>
+
+				<form method="POST">
+
+					<input type="hidden" name="service_id" value="<?php echo $edit_service['id']; ?>">
+
+					<div class="form-grid">
+
+						<div>
+							<label for="service_title_edit">Service Title</label>
+							<input id="service_title_edit" type="text" name="service_title"
+								value="<?php echo htmlspecialchars($edit_service['title']); ?>" required>
+						</div>
+
+						<div>
+							<label for="service_icon_edit">Icon</label>
+							<input id="service_icon_edit" type="text" name="service_icon"
+								value="<?php echo htmlspecialchars($edit_service['icon']); ?>">
+						</div>
+
+						<div>
+							<label for="sort_order_edit">Sort Order</label>
+							<input id="sort_order_edit" type="number" name="sort_order"
+								value="<?php echo (int) $edit_service['sort_order']; ?>" required>
+						</div>
+
+						<div>
+							<label for="service_status_edit">Status</label>
+							<select id="service_status_edit" name="service_status">
+								<option value="Active" <?php echo $edit_service['status'] == 'Active' ? 'selected' : ''; ?>>
+									Active
+								</option>
+								<option value="Inactive" <?php echo $edit_service['status'] == 'Inactive' ? 'selected' : ''; ?>>
+									Inactive
+								</option>
+							</select>
+						</div>
+
+						<div class="full">
+							<label for="service_items_edit">Service Items (One line per item)</label>
+							<textarea id="service_items_edit" name="service_items" required><?php echo htmlspecialchars($edit_service['items']); ?></textarea>
+						</div>
+
+						<div class="full">
+							<button type="submit" name="edit_service">
+								Update Service
+							</button>
+						</div>
+
+					</div>
+
+				</form>
+
+			</div>
+
+		<?php endif; ?>
+
+		<div class="table-box">
+
+			<h2>Services List</h2>
+
+			<div class="table-wrapper">
+
+				<table>
+
+					<tr>
+						<th>ID</th>
+						<th>Icon</th>
+						<th>Title</th>
+						<th>Items</th>
+						<th>Order</th>
+						<th>Status</th>
+						<th>Actions</th>
+					</tr>
+
+					<?php while ($service_row = $services_list->fetch_assoc()): ?>
+
+						<tr>
+
+							<td><?php echo $service_row['id']; ?></td>
+
+							<td><?php echo htmlspecialchars($service_row['icon']); ?></td>
+
+							<td><?php echo htmlspecialchars($service_row['title']); ?></td>
+
+							<td style="text-align:left; max-width:420px;">
+								<?php
+								$items_preview = preg_split('/\r\n|\r|\n/', $service_row['items']);
+
+								foreach ($items_preview as $item_line):
+
+									$item_line = trim($item_line);
+
+									if ($item_line === '') {
+										continue;
+									}
+									?>
+									<div>• <?php echo htmlspecialchars($item_line); ?></div>
+								<?php endforeach; ?>
+							</td>
+
+							<td><?php echo (int) $service_row['sort_order']; ?></td>
+
+							<td class="<?php echo strtolower($service_row['status']); ?>">
+								<?php echo $service_row['status']; ?>
+							</td>
+
+							<td>
+
+								<a class="action" href="admin.php?edit_service=<?php echo $service_row['id']; ?>">
+									Edit
+								</a>
+
+								<a class="action" href="admin.php?toggle_service=<?php echo $service_row['id']; ?>">
+									Toggle
+								</a>
+
+								<a class="action delete" href="admin.php?delete_service=<?php echo $service_row['id']; ?>"
+									onclick="return confirm('Are you sure you want to delete this service?');">
+									Delete
+								</a>
+
+							</td>
+
+						</tr>
+
+					<?php endwhile; ?>
+
+				</table>
+
 			</div>
 
 		</div>
@@ -1127,11 +1531,21 @@ $queries = $conn->query(
 						<label>Service</label>
 
 						<select name="service">
+							<?php
+							$service_options_add = $conn->query(
+								"SELECT title FROM services WHERE status='Active' ORDER BY sort_order ASC, id ASC"
+							);
 
-							<option>Legal Services</option>
-							<option>Tax Consultation</option>
-							<option>Corporate Services</option>
-							<option>Documentation Services</option>
+							if ($service_options_add && $service_options_add->num_rows > 0):
+								while ($service_item = $service_options_add->fetch_assoc()):
+									?>
+									<option><?php echo htmlspecialchars($service_item['title']); ?></option>
+								<?php
+								endwhile;
+							else:
+								?>
+								<option value="">No active service available</option>
+							<?php endif; ?>
 
 						</select>
 
@@ -1216,26 +1630,23 @@ $queries = $conn->query(
 							<label>Service</label>
 
 							<select name="service">
+								<?php
+								$service_options_edit = $conn->query(
+									"SELECT title FROM services ORDER BY sort_order ASC, id ASC"
+								);
 
-								<option <?php if ($edit_client['service'] == "Legal Services")
-									echo "selected"; ?>>
-									Legal Services
-								</option>
-
-								<option <?php if ($edit_client['service'] == "Tax Consultation")
-									echo "selected"; ?>>
-									Tax Consultation
-								</option>
-
-								<option <?php if ($edit_client['service'] == "Corporate Services")
-									echo "selected"; ?>>
-									Corporate Services
-								</option>
-
-								<option <?php if ($edit_client['service'] == "Documentation Services")
-									echo "selected"; ?>>
-									Documentation Services
-								</option>
+								if ($service_options_edit && $service_options_edit->num_rows > 0):
+									while ($service_item = $service_options_edit->fetch_assoc()):
+										?>
+											<option <?php echo $edit_client['service'] == $service_item['title'] ? 'selected' : ''; ?>>
+											<?php echo htmlspecialchars($service_item['title']); ?>
+										</option>
+									<?php
+									endwhile;
+								else:
+									?>
+									<option selected><?php echo htmlspecialchars($edit_client['service']); ?></option>
+								<?php endif; ?>
 
 							</select>
 

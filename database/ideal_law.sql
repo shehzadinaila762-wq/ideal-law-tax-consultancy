@@ -127,6 +127,27 @@ VALUES (4, 'Naila', 'client', 'test@gmail.com', '030000000000000', 'test query',
   (25, 'test', 'user', 'test@example.com', '3332050000', 'test user query', '2026-08-24 13:18:55', 'Pending');
 
 -- ==========================================================
+-- Table: services
+-- Stores service categories and their list items
+-- ==========================================================
+
+CREATE TABLE `services` (
+  `id` int(11) NOT NULL,
+  `title` varchar(150) NOT NULL,
+  `icon` varchar(20) DEFAULT '⚖️',
+  `items` text NOT NULL,
+  `sort_order` int(11) DEFAULT 0,
+  `status` enum('Active', 'Inactive') DEFAULT 'Active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+
+INSERT INTO `services` (`id`, `title`, `icon`, `items`, `sort_order`, `status`, `created_at`)
+VALUES (1, 'Legal Services', '⚖️', 'Legal Consultation & Advice\nLegal Documentation & Drafting\nContract & Agreement Drafting\nProperty & Land Matters\nCivil & Criminal Matters\nFamily Law Matters\nCorporate Legal Advisory\nLegal Notices\nCourt & Litigation Services', 1, 'Active', '2026-08-24 12:00:00'),
+  (2, 'Tax Consultation', '💰', 'Income Tax Return\nGeneral Sales Tax (GST)\nRegional Sales Tax (BRA)\nFederal Excise Tax\nPOS (Point of Sale)\nNTN (National Tax Number)', 2, 'Active', '2026-08-24 12:00:00'),
+  (3, 'Corporate Services', '🏢', 'Company Registration\nFirm Registration\nPakistan Engineering Council Registration\nTrademark Registration\nImport / Export License\nChamber of Commerce Registration\nNGO / NPO Registration', 3, 'Active', '2026-08-24 12:00:00'),
+  (4, 'Documentation Services', '📄', 'Legal Document Preparation\nAgreements & Contracts\nAffidavits\nApplications & Official Documents\nPower of Attorney\nLegal Notices\nBusiness & Company Documents\nTax & Regulatory Documents', 4, 'Active', '2026-08-24 12:00:00');
+
+-- ==========================================================
 -- Table: team_members
 -- Stores staff shown on the website's team page
 -- ==========================================================
@@ -155,6 +176,7 @@ ALTER TABLE `clients` ADD PRIMARY KEY (`id`);
 ALTER TABLE `gallery` ADD PRIMARY KEY (`id`);
 ALTER TABLE `payments` ADD PRIMARY KEY (`id`);
 ALTER TABLE `queries` ADD PRIMARY KEY (`id`);
+ALTER TABLE `services` ADD PRIMARY KEY (`id`);
 ALTER TABLE `team_members` ADD PRIMARY KEY (`id`);
 
 -- ==========================================================
@@ -165,6 +187,7 @@ ALTER TABLE `clients` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMEN
 ALTER TABLE `gallery` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 5;
 ALTER TABLE `payments` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 12;
 ALTER TABLE `queries` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 26;
+ALTER TABLE `services` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 5;
 ALTER TABLE `team_members` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 6;
 
 COMMIT;
