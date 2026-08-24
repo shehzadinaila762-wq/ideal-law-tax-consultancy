@@ -6,23 +6,29 @@ $admin_password = "Ideal@123";
 
 $error = "";
 
-if (isset($_POST['login'])) {
+if (!empty($_SESSION['admin_logged_in'])) {
+	header("Location: admin.php");
+	exit;
+}
 
-	$username = $_POST['username'];
-	$password = $_POST['password'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
+
+	$username = trim($_POST['username'] ?? '');
+	$password = $_POST['password'] ?? '';
 
 	if ($username === $admin_username && $password === $admin_password) {
 
+		session_regenerate_id(true);
 		$_SESSION['admin_logged_in'] = true;
 
 		header("Location: admin.php");
 		exit;
 
-	} else {
-
-		$error = "Invalid username or password.";
-
 	}
+
+	unset($_SESSION['admin_logged_in']);
+	$error = "Invalid username or password.";
+
 }
 ?>
 
@@ -153,7 +159,7 @@ if (isset($_POST['login'])) {
 
 			<input type="password" name="password" required>
 
-			<button type="submit" action="login" name="login">
+			<button type="submit" name="login" value="1">
 				Login
 			</button>
 
